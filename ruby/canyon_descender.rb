@@ -79,72 +79,66 @@ class CanyonDescender
     not gap_to_right?
   end
   
-  def count_until(params)
-    row, col = params[:start]
+  def count_while(params, &b)
+    row_inc = params[:row_inc] || 0
+    col_inc = params[:col_inc] || 0
+        
+    row = @position[:row] + row_inc
+    col = @position[:col] + col_inc
+        
     count = 0
-    until params[:pred].call(row, col)
-      row, col = params[:inc].call(row, col)
+    
+    while yield(row, col)
+      row = row + row_inc
+      col = col + col_inc
       count += 1
     end
+    
     count
   end
-  
+    
   def obstacle_depth
-    pred = lambda do |row, col| 
-      row == @canyon.length - 1 or not @canyon[row][col]
+    count = count_while :row_inc => 1 do |row, col|
+      row < @canyon.length-1 and @canyon[row][col]
     end
-    
-    inc = lambda do |row, col| 
-      [row+1, col]
-    end
-    
-    count = count_until :pred => pred, :start => [@position[:row]+1, @position[:col]], :inc => inc
-    
-    @position[:row] + count + 1
+
+    count + @position[:row] + 1
   end
   
   def can_see_bottom?
     obstacle_depth == @canyon.length-1
   end
-  
-  def space_to_right
-    row = @position[:row]+1
-    col = @position[:col]+1
-    space = 0
-    while row < @canyon.length and col < @canyon[0].length and @canyon[row][col] 
-      space += 1
-      row += 1
-      col += 1
+    
+  def space_to_left
+    count_while:row_inc => 1, :col_inc => -1 do |row, col|
+      row < @canyon.length and col >= 0 and @canyon[row][col]
     end
-    space
+  end
+    
+  def space_to_right
+    count_while :row_inc => 1, :col_inc => 1 do |row, col|
+      row < @canyon.length and col < @canyon[0].length and @canyon[row][col]
+    end
   end
   
   def space_beneath
-    row = @position[:row]+1
-    space = 0
-    while row < @canyon.length and @canyon[row][@position[:col]]
-      space += 1
-      row += 1
+    count_while :row_inc => 1 do |row, col|
+      row < @canyon.length and @canyon[row][col]
     end
-    space
   end
   
   def space_beneath_left
-    return 0 unless can_move_left?
-    row = @position[:row]+1
-    col = @position[:col]-1
-    space = 0
-    while row < @canyon.length and @canyon[row][col]
-      space += 1
-      row += 1
-    end
-    space
+    space_beneath_when :offset => -1, :possible => can_move_left?
   end
   
   def space_beneath_right
-    return 0 unless can_move_right?
-    row = @position[:row]+1
-    col = @position[:col]+1
+    space_beneath_when :offset => 1, :possible => can_move_right?
+  end
+  
+  def space_beneath_when(params)
+    return 0 unless params[:possible]
+    row = @position[:row] + 1
+    col = @position[:col] + params[:offset]
     space = 0
     while row < @canyon.length and @canyon[row][col]
       space += 1
@@ -152,19 +146,7 @@ class CanyonDescender
     end
     space
   end
-  
-  def space_to_left
-    row = @position[:row]+1
-    col = @position[:col]-1
-    space = 0
-    while row < @canyon.length and col >=0 and @canyon[row][col] 
-      space += 1
-      row += 1
-      col -= 1
-    end
-    space
-  end
-    
+      
   def should_boost?
     can_boost? and @canyon[@position[:row]+1][@position[:col]] == false
   end

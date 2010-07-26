@@ -10,8 +10,8 @@ end
 generator = CanyonGenerator.new(:width => 30, :depth => 100, :min_overlap => 6)
 canyon = generator.generate
 
-descender = CanyonDescender.new(:fuel => 20)
-descender.descend canyon, 30
+@descender = CanyonDescender.new(:fuel => 20)
+@descender.descend canyon, 30
 
 def print_rows(rows)
   rows.each do |row|
@@ -20,23 +20,29 @@ def print_rows(rows)
 end
 
 FRAME_HEIGHT = 35
-frame = 0
+@frame = 0
 PLAYING = true
 
-until descender.finished?
-  
+def display_descent
   if PLAYING
-    frame_display = descender.descent_state.slice(frame, FRAME_HEIGHT)
+    frame_display = @descender.descent_state.slice(@frame, FRAME_HEIGHT)
     
     clear_screen
     print_rows frame_display
     sleep 0.1
   end
+end
+
+until @descender.finished?
   
-  frame += 1
-  descender.next_action 
+  display_descent
+  
+  @frame += 1
+  @descender.next_action
   
 end
 
-puts "Survived #{frame} moves"
-print_rows descender.descent_history unless PLAYING
+display_descent
+
+puts "Survived #{@frame} moves"
+print_rows @descender.descent_history unless PLAYING

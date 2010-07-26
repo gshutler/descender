@@ -4,11 +4,8 @@ module CanyonDescenderOutputter
     canyon_display = @canyon.map do |row|
       row.map {|col| col ? ' ' : '#'}
     end
-    if @canyon[@position[:row]][@position[:col]]
-      canyon_display[@position[:row]][@position[:col]] = 'V'
-    else
-      canyon_display[@position[:row]][@position[:col]] = '@'
-    end
+    
+    canyon_display[@position[:row]][@position[:col]] = 'V' if @canyon[@position[:row]][@position[:col]]
     canyon_display[@position[:row]+1][@position[:col]] = '*' if @boosting
     canyon_display
   end
