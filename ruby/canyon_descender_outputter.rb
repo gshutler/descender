@@ -5,8 +5,11 @@ module CanyonDescenderOutputter
       row.map {|col| col ? ' ' : '#'}
     end
     
-    canyon_display[@position[:row]][@position[:col]] = 'V' if @canyon[@position[:row]][@position[:col]]
-    canyon_display[@position[:row]+1][@position[:col]] = '*' if @boosting
+    descender_display = 'V'
+    descender_display = '@' if @crashed
+    
+    canyon_display[@position[:row]][@position[:col]] = descender_display
+    canyon_display[@position[:row]+1][@position[:col]] = '*' if @boosting    
     canyon_display
   end
   
