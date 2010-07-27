@@ -3,17 +3,19 @@ require 'canyon_descender_outputter'
 class CanyonDescender
   include CanyonDescenderOutputter
 
-  DEFAULT_STARTING_FUEL = 10
+  DEFAULT_STARTING_BOOSTS = 10
+  
+  attr_reader :remaining_boosts, :crashed, :path_taken
 
   def initialize(params = {})
-    @starting_fuel = params[:fuel] || DEFAULT_STARTING_FUEL
+    @starting_boosts = params[:boosts] || DEFAULT_STARTING_BOOSTS
   end
   
   def descend(canyon, starting_depth)
     @canyon = canyon
     @position = {:row => starting_depth, :col => 0}
     @crashed = false
-    @remaining_fuel = @starting_fuel
+    @remaining_boosts = @starting_boosts
     @path_taken = []
   end
     
@@ -37,14 +39,15 @@ class CanyonDescender
   end
   
   def update_descender_state
-    @remaining_fuel -= 1 if @boosting
+    @remaining_boosts -= 1 if @boosting
     @position[:row] += 1 unless @boosting
     
     @crashed = true unless @canyon[@position[:row]][@position[:col]]
   end
   
   def record_position
-    @path_taken << {:row => @position[:row], :col => @position[:col], :boosting => @boosting}
+    row, col = @position[:row], @position[:col]
+    @path_taken << {:row => row, :col => col, :boosting => @boosting, :crashed => @crashed}
   end
     
   def move_right
@@ -112,7 +115,7 @@ class CanyonDescender
   end
   
   def can_boost?
-    @remaining_fuel > 0
+    @remaining_boosts > 0
   end
   
   def count_while(params, &b)

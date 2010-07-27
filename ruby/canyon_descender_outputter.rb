@@ -9,7 +9,8 @@ module CanyonDescenderOutputter
     descender_display = '@' if @crashed
     
     canyon_display[@position[:row]][@position[:col]] = descender_display
-    canyon_display[@position[:row]+1][@position[:col]] = '*' if @boosting    
+    canyon_display[@position[:row]+1][@position[:col]] = '*' if @boosting
+    
     canyon_display
   end
   
@@ -18,7 +19,9 @@ module CanyonDescenderOutputter
       row.map {|col| col ? ' ' : '#'}
     end
     @path_taken.each do |path|
-      canyon_display[path[:row]][path[:col]] = 'V'
+      descender_display = 'V'
+      descender_display = '@' if path[:crashed]
+      canyon_display[path[:row]][path[:col]] = descender_display
       canyon_display[path[:row]+1][path[:col]] = '*' if path[:boosting]
     end
     canyon_display

@@ -10,7 +10,7 @@ end
 generator = CanyonGenerator.new(:width => 30, :depth => 100, :min_overlap => 6)
 canyon = generator.generate
 
-@descender = CanyonDescender.new(:fuel => 20)
+@descender = CanyonDescender.new(:boosts => 20)
 @descender.descend canyon, 30
 
 def print_rows(rows)
@@ -44,5 +44,11 @@ end
 
 display_descent
 
-puts "Survived #{@frame} moves"
+if @descender.crashed
+  puts "Crashed after #{@descender.path_taken.length} moves"
+else
+  puts "Survived with #{@descender.remaining_boosts} boosts remaining"
+end
+
 print_rows @descender.descent_history unless PLAYING
+
