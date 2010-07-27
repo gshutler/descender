@@ -66,9 +66,10 @@ class CanyonDescender
   end
   
   def gap_to_right?
+    return true if can_see_bottom?
     row = obstacle_depth
-    col = @position[:col]+1    
-    while col < @canyon[0].length
+    col = @position[:col] + 1
+    while row < @canyon.length and col < @canyon[0].length
       return true if @canyon[row][col]
       col += 1
     end
@@ -76,41 +77,19 @@ class CanyonDescender
   end
   
   def gap_to_left?
-    not gap_to_right?
+    not gap_to_right? unless can_see_bottom?
   end
-  
-  def count_while(params, &b)
-    row_inc = params[:row_inc] || 0
-    col_inc = params[:col_inc] || 0
-        
-    row = @position[:row] + row_inc
-    col = @position[:col] + col_inc
-        
-    count = 0
-    
-    while yield(row, col)
-      row = row + row_inc
-      col = col + col_inc
-      count += 1
-    end
-    
-    count
-  end
-    
+      
   def obstacle_depth
-    count = count_while :row_inc => 1 do |row, col|
-      row < @canyon.length-1 and @canyon[row][col]
-    end
-
-    count + @position[:row] + 1
+    @position[:row] + space_beneath + 1
   end
   
   def can_see_bottom?
-    obstacle_depth == @canyon.length-1
+    obstacle_depth == @canyon.length
   end
     
   def space_to_left
-    count_while:row_inc => 1, :col_inc => -1 do |row, col|
+    count_while :row_inc => 1, :col_inc => -1 do |row, col|
       row < @canyon.length and col >= 0 and @canyon[row][col]
     end
   end
@@ -136,15 +115,9 @@ class CanyonDescender
   end
   
   def space_beneath_when(params)
-    return 0 unless params[:possible]
-    row = @position[:row] + 1
-    col = @position[:col] + params[:offset]
-    space = 0
-    while row < @canyon.length and @canyon[row][col]
-      space += 1
-      row += 1
+    count_while :row_inc => 1, :col_offset => params[:offset] do |row, col|
+      params[:possible] and row < @canyon.length and @canyon[row][col]
     end
-    space
   end
       
   def should_boost?
@@ -162,5 +135,32 @@ class CanyonDescender
   def can_boost?
     @remaining_fuel > 0
   end
-
+  
+  def count_while(params, &b)
+    row_inc = params[:row_inc] || 0
+    col_inc = params[:col_inc] || 0
+    
+    if params[:row_offset].nil?
+      row = @position[:row] + row_inc
+    else
+      row = @position[:row] + params[:row_offset]
+    end
+    
+    if params[:col_offset].nil?
+      col = @position[:col] + col_inc
+    else
+      col = @position[:col] + params[:col_offset]
+    end
+        
+    count = 0
+    
+    while yield(row, col)
+      row = row + row_inc
+      col = col + col_inc
+      count += 1
+    end
+    
+    count
+  end
+  
 end
